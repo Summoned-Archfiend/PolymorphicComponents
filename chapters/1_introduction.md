@@ -4,7 +4,7 @@ In software engineering polymorphism is a common term used throughout Object Ori
 
 Thus, it logically follows that polymorphic components are components which may also be used to represent differing types. But what does this mean? you may ask. For instance in Object Oriented Programming we may have a polymorphic class which is used by other classes via inheritance to inherit various capabilities or properties. In modern React however it is best practice for us to use functional components, therefore when we are talking about polymorphic components we are not talking about class inheritance but a method by which a component may change it's base properties dynamically.
 
-You can think of this as a Component which can change its type from a user prop, for example we may havea Component called DOMElement which itself can be many components (span, h1, a).
+You can think of this as a Component which can change its type from a user prop, for example we may have a Component called DOMElement which itself can be many components (span, h1, a).
 
 Rather than creating a separate DOMElement for each of these components it is far better if we can define it dynamically:
 
@@ -27,7 +27,6 @@ import Button from '@mui/material/Button';
 <Button color="danger" variant="outlined">
 ```
 </div>
-
 
 Here we can pass properties which completely change the button of our Button component. We can handle various Button types, all without having to declare more than a single Button component. You can likely imagine how much space this saves in our codebase as we can reuse the same component over and over again for each variant of our component. So how exactly do we do this?
 
