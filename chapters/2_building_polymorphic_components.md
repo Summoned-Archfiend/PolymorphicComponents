@@ -40,6 +40,14 @@ const Text = ({
 
 This enables us to use the variable as a component. We then simply return our ```children``` passed in between our components open and closing tags and return them wrapped with our variable name. You can find a full example of this code [here](https://github.com/LukeMcCann/FirstPolymorphicComponent/blob/first-polymorphic-component/src/App/Text/Text.tsx).
 
+So, we have built our basic component, congratulations! however, there are still some problems. In programming we always start off with the most simplistic implementation, we write our tests, then build the implementation to pass the tests and achieve the functionality we require. We should only ever do the minimum to get the tests to pass. As such, there are many ways in which we are able to improve this naive implementation.
+
+First and foremost, our current implementation will accept any value for our ```as``` prop. What if another developer passes a non-existent tag? you might expect an error, but you would be wrong, it instead will simply render with the nonsensical tag. You may think: "Well, it doesn't break, what's the problem?" but if we have many different types of tags that are none-standard, this could lead to problems later down the line and doesn't keep our application consistent. This could even be a typo, for instance, if our user passes ```hl``` instead of ```h1```, this could be rather difficult to spot depending on the font you are using in your text editor.
+
+The second issue is that we currently have no support for attributes in our Component. For instance, if we wanted to pass an anchor tag we would also need to pass a ```href``` attribute, currently we are not passing this to our component tags and it would therefore not be applied, as such we would need to add support for attributes in order to expand the usefulness of our Component. This ties into our third main issue, if we enable attribute support we will then have the problem of invalid attributes being passed to elements. What do we mean by this? well, consider the following: we enable our Component to pass a href attribute, what happens if we pass this attribute but put ```as="h1"```? this should not be allowed as href is not available for a h1 yet currently there is nothing to stop us from doing this.
+
+# Improving Our Component
+
 
 
 [<< prev](./1_introduction.md) | [next >>]()
