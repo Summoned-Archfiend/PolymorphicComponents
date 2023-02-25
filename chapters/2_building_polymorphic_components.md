@@ -48,6 +48,87 @@ The second issue is that we currently have no support for attributes in our Comp
 
 # Improving Our Component
 
+Previously we defined three key ways in which our polymorphic component could be better. In this section we will implement this into our actual component and test it to ensure it adheres to our ideal outcome. In order to do this it is important we use TypeScript. JavaScript is a loosely typed language, this is very flexible and can be great when we want to write quick prototypes in our code, however, it can lead to mistakes and bugs further down the line. As someone who started programming in Java, PHP, C++ I much prefer strongly typed languages as too much flexibility makes it very easy to write sloppy code that is difficult to maintain. TypeScript fixes this by giving us a Transpiler (a form of compiler which translates one language to another) the transpilers output is often a human-readable language, compilation is a different form where we compile a language into another which is more machine-readable, usually increasing efficiency or runtime, each of these operate at differing levels of abstraction.
+We will be using TypeScript so that we can set limits as to the types our props will accept, this will make our component far more robust and set "rules" that future developers must follow in order to use our component.
 
+Another key part of TypeScript we will use is the concept of ```Generics```. If you have ever coded in an object oriented language such as Java it is likely you have come across the term ```Generics``` before. Java's generics are very similar to ```TypeScripts``` and the functionality and syntax will appear very familiar to seasoned Java devs. However, they do so differ in the way they handle type erasure, ```TypeScripts``` system being structural rather than nominal, which can affect how generics are used in certain situations.
+
+In a structural type system types are defined by their structure and composition rather than explicit declarations or names. This means that two types are considered equivalent if their structures match, regardless of whether or not they have the same name or were defined in the same way. In TypeScript we can see an example of this if we have two objects with the same properties and methods, these two objects will be considered to have the same type even if they were defined separately or with different names.
+
+Contrasting this is a nominal type system as you would find in a language like Java. In this instance types are defined by explicit declarations and names, two types are only considered equivalent if they have the same name or were declared in the same way. In Java two classes with the same structure but different names are considered to have different types and cannot be used interchangeably.
+
+That was a lot of information, but I hope you now see what it is we are using Generics for a little clearer. In our case we want our component to be as flexible as possible, thus we will be using Generics within our implementation to allow for our types to be decided at runtime. However, we will also wish to constrain these generics to types which are valid to use with our generic component.
+
+Note: I say component a lot here for clarity but do remember that in React a component is simply a JS function.
+
+It may help to think of generics in terms of a function. If we think about when we want to write a JS function and make it more generic what do we do? we parameterise it, we use variables, similarly when we want to parameterise a TypeScript type we use Generics.
+
+```
+const echo = value => {
+    console.log(value);
+
+    return value;
+};
+
+echo(123);
+```
+
+In the above snippet we have a parameterised function, this means we can reuse the function to print any value we pass to it, this works great, but what if we wanted to limit this particular function to only work with a single type? this is where TypeScript would come in:
+
+```
+const echo = (value: number) : number => {
+    console.log(value)
+
+    return value;
+};
+
+echo(123);
+```
+
+But what if we wanted multiple types? well, we could use ```any``` however that is not recommended as it essentially disables TypeScript effectively losing all of the advantages using TypeScript provides (such as type safety). It is far better if we can explicitly define the types we are going to want to use with this function, or if we don't know what types we are going to want to use to use the ```unknown``` type. In this case we want to restrict our types to a number, string, or object.
+
+```
+const echo = (value: number | string | object) : number | string | object => {
+    console.log(value)
+
+    return value;
+};
+
+echo(123);
+```
+
+Now, this works but it means we have to know exactly what we want, it also means we have to define every type as a union type, and it is not very dynamic at all. It would be far better in this case to use Generics:
+
+```
+const echo = <T> (value: T) : T => {
+    console.log(value)
+
+    return value;
+};
+
+echo(123);
+```
+
+We can represent our value as a kind of "variable". This means we do not need to know exactly what type we are going to be handed at runtime. In this example our generic is ```T```, we declare our generic type ```T``` in angled brackets then use it as the type for both our parameter and the return value. The actual type here will be determined at runtime depending on the type which is passed to the function. This means we can effectively handle any type by inferring the type from the argument passed. Alternatively, TypeScript allows us to explicitly declare our generic type when calling the function as such:
+
+```
+echo<string>("123");
+```
+
+Now lets say we have another function:
+
+```
+const echoLength = <T extends {length: number}> (value: T) : number => {
+    console.log(value.length)
+
+    return value.length;
+};
+
+echo(123);
+```
+
+In this case we have a Generic, however, the function needs access to a property of that Generic value which may not exist on every possible type, in this case we need to constrain the type of our generic to only allow the types which have a length property. We can do this by extending a type which has the properties we are looking for.
+
+Lets now apply what we have learned here to our Component.
 
 [<< prev](./1_introduction.md) | [next >>]()
