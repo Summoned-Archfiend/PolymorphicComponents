@@ -186,4 +186,94 @@ Now, you might think we would need to update our tests for this, however, we hav
 The element we have extended here is the React.ElementType, if you inspect this you will notice an array of elements all which have tags matching HTMLElements. By leveraging these standard types we cut down on the amount of declarations we would need if we did this as a union type instead. You can find a full example of this
 [here](https://github.com/LukeMcCann/FirstPolymorphicComponent/tree/constrained-generics).
 
-[<< prev](./1_introduction.md) | [next >>]()
+Our second problem is that we need to support attributes being passed to our elements. Furthermore, we need to validate our attributes so that elements may only receive valid attributes.
+
+We can do so by simply redefining our types, in order to support attributes we must use a type as we require additional types to be included alongside our defined types. This is because we are defining the intersection of multiple types, we cannot use an interface for this as we wish to intersect our custom types with that of a set of types defined elsewhere:
+
+```
+type TextProps<T> = {
+    as?: T,
+    children: React.ReactNode,
+} & React.ComponentPropsWithoutRef<T>;
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType> ({
+    as,
+    children,
+}: TextProps<T>) => {
+    const Component = as || 'span';
+    return <Component>{children}</Component>;
+};
+
+export default Text;
+```
+
+Notice that at the end of this we are now able to pass a ```href``` when we have an anchor tag as our ```as``` value, however, we cannot when we have a tag which does not support this. This is exactly as we want, however, we now also have an error to address. We also have the issue that whilst we an now pass our attributes we are not yet using them in our component, thus they will have no effect. We can fix the latter by simply spreading our remaining props into the component, this will mean we get any attributes passed to the Component attached to it automatically:
+
+```
+type TextProps<T> = {
+    as?: T,
+    children: React.ReactNode,
+} & React.ComponentPropsWithoutRef<T>;
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType> ({
+    as,
+    children,
+    ...attributes
+}: TextProps<T>) => {
+    const Component = as || 'span';
+    return <Component {...attributes}>{children}</Component>;
+};
+
+export default Text;
+```
+
+We then have to consider our default case. We know that if no ```as``` prop is passed that we should have a default ```span```. TypeScript on the other hand does not know this yet. If we attempt to default our prop TypeScript will instead treat our type as a generic any type, this means we have no type safety and any attributes at all can be passed. To resolve this we need to set a default on our generic itself:
+
+```
+type TextProps<T extends React.ElementType = 'span'> = {
+    as?: T,
+    children: React.ReactNode,
+} & React.ComponentPropsWithoutRef<T>;
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType = 'span'> ({
+    as,
+    children,
+    ...attributes
+}: TextProps<T>) => {
+    const Component = as || 'span';
+    return <Component {...attributes}>{children}</Component>;
+};
+
+export default Text;
+```
+
+There are other ways in which we could do this. For instance, we could instead pipe our types wihtin the type instead:
+
+```
+type TextProps<T> = {
+    as?: T | 'span',
+    children: React.ReactNode,
+} & React.ComponentPropsWithoutRef<T>;
+```
+
+We will need further changes to this yet as we improve the type safety of our Component. It is important to note that wiht how this is working so far we do have the capability to render custom Components via the ```as``` prop. This is because our generic currently extends ElementType which itself also extends another type definition ComponentType.
+
+[<< prev](./1_introduction.md)
