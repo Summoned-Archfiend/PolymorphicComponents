@@ -274,6 +274,130 @@ type TextProps<T> = {
 } & React.ComponentPropsWithoutRef<T>;
 ```
 
-We will need further changes to this yet as we improve the type safety of our Component. It is important to note that wiht how this is working so far we do have the capability to render custom Components via the ```as``` prop. This is because our generic currently extends ElementType which itself also extends another type definition ComponentType. This ComponentType also extends a union of ComponentClass and FunctionComponent (meaning it can handle both class and functional components).
+We will need further changes to this yet as we improve the type safety of our Component. It is important to note that with how this is working so far we do have the capability to render custom Components via the ```as``` prop. This is because our generic currently extends ElementType which itself also extends another type definition ComponentType. This ComponentType also extends a union of ComponentClass and FunctionComponent (meaning it can handle both class and functional components).
+
+The next step, if we should pass our own props we do not currently handle this. To handle a ```color``` prop we must ensure we omit the prop from the current props should it exist, then we can assign our own prop in it's place. We do this by extending our types further, we can extend our Props omitting the props we want to replace:
+
+```
+type Rainbow =
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'indigo'
+    | 'violet'
+
+type TextProps<T extends React.ElementType> = {
+    as?: T,
+    color?: Rainbow | 'black',
+};
+
+type Props<T extends React.ElementType> = React.PropsWithChildren<TextProps<T>> &
+    Omit<React.ComponentPropsWithoutRef<T>, "color">
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType = 'span'> ({
+    as,
+    color,
+    children,
+    ...attributes
+}: Props<T>) => {
+    const Component = as || 'span';
+    return <Component {...attributes}>{children}</Component>;
+};
+
+export default Text;
+```
+
+This works fine for a single prop named ```color``` however we want this to work for any future props we may or may not pass. We can easily do this programmatically if we think about the above case for a moment. What we are basically saying is, we want the props that are passed to the component, but we want them to override the current props from our base types if their names match. As such, we can see this as an omission of our base props in favor of props passed. This means that we can simply use ```keyof``` on our now separated ```TextProps``` type.
+
+```
+type Rainbow =
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'indigo'
+    | 'violet'
+
+type TextProps<T extends React.ElementType> = {
+    as?: T,
+    color?: Rainbow | 'black',
+};
+
+type Props<T extends React.ElementType> = React.PropsWithChildren<TextProps<T>> &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof TextProps<T>>
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType = 'span'> ({
+    as,
+    color,
+    children,
+    ...attributes
+}: Props<T>) => {
+    const Component = as || 'span';
+    return <Component {...attributes}>{children}</Component>;
+};
+
+export default Text;
+```
+
+At this stage we can now apply props without error, however, notice that once again they are not yet used within the component itself, thus doing so does absolutely nothing at this moment.
+
+To apply this we have a few options. A simple approach would be to simply pass a ternary that checks if color is set and sets our style object to reflect the color passed:
+
+```
+import classNames from "classnames";
+
+type Rainbow =
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'indigo'
+    | 'violet'
+
+type TextProps<T extends React.ElementType> = {
+    as?: T,
+    color?: Rainbow | 'black',
+};
+
+type Props<T extends React.ElementType> = React.PropsWithChildren<TextProps<T>> &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof TextProps<T>>
+
+/**
+ * Render a polymorphic Text Component.
+ * @param as - The type of component to render, defaults to span
+ * @param children - The children to render within the component
+ * @returns The constructed Text component
+ */
+const Text = <T extends React.ElementType = 'span'> ({
+    as,
+    color,
+    children,
+    ...attributes
+}: Props<T>) => {
+    const Component = as || 'span';
+    const internalStyles = color ? { style: { color }} : {};
+    return <Component {...attributes} {...internalStyles}>{children}</Component>;
+};
+
+export default Text;
+```
+
+However, in a production level application it would be better to use the classNames library which enable us to pass multiple classes to our components. This introduces a bit more complexity in that you will need a stylesheet imported, and then to transform the class based on the prop, this class would then be applied within ```classNames```. A full example of passing custom attributes can be viewed [here](https://github.com/LukeMcCann/FirstPolymorphicComponent/tree/custom-attributes).
 
 [<< prev](./1_introduction.md)
