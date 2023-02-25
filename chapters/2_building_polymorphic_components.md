@@ -131,4 +131,59 @@ In this case we have a Generic, however, the function needs access to a property
 
 Lets now apply what we have learned here to our Component.
 
+# Applying Our Knowledge of Generics
+
+First of all we want to constrain our component to only allow valid HTML element strings in our ```as``` prop:
+
+```
+const Text = <T,> ({
+    as,
+    children
+}: TextProps) => {
+    const Component = as || 'span';
+    return <Component>{children}</Component>;
+};
+```
+
+We do so by applying our Generic within our Component, we will also need to pass this in our interface:
+
+```
+interface TextProps {
+    as?: T,
+    children: React.ReactNode,
+};
+```
+
+We also need to either define our generic with a comma, or by extending another element straight after. This is due to a quirk with JSX explained best in [this](https://stackoverflow.com/questions/32308370/what-is-the-syntax-for-typescript-arrow-functions-with-generics?) StackOverflow post.
+
+We can then constrain our generic, in this case we want it to be a valid ```ElementType```:
+
+```
+interface TextProps<T> {
+    as?: T,
+    children: React.ReactNode,
+};
+
+const Text = <T extends React.ElementType> ({
+    as,
+    children
+}: TextProps<T>) => {
+    const Component = as || 'span';
+    return <Component>{children}</Component>;
+};
+```
+
+With this restriction in place all of our valid tests should still work. However, if we have an invalid value we expect to see an error:
+
+```
+    <Text as="nonesense">Hello World</Text>
+
+    Type '"nonesense"' is not assignable to type 'ElementType<any> | undefined'
+```
+
+Now, you might think we would need to update our tests for this, however, we have an issue. Since this is a syntax error which is being assessed at TypeScripts "compile" time we have no means of testing for this. Instead, we can be sure that nobody will use this component in this manner as the transpiler itself will throw an error disallowing misuse of the component in the first place.
+
+The element we have extended here is the React.ElementType, if you inspect this you will notice an array of elements all which have tags matching HTMLElements. By leveraging these standard types we cut down on the amount of declarations we would need if we did this as a union type instead. You can find a full example of this
+[here](https://github.com/LukeMcCann/FirstPolymorphicComponent/tree/constrained-generics).
+
 [<< prev](./1_introduction.md) | [next >>]()
