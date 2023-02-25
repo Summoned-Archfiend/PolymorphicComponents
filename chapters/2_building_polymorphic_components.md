@@ -242,7 +242,7 @@ export default Text;
 We then have to consider our default case. We know that if no ```as``` prop is passed that we should have a default ```span```. TypeScript on the other hand does not know this yet. If we attempt to default our prop TypeScript will instead treat our type as a generic any type, this means we have no type safety and any attributes at all can be passed. To resolve this we need to set a default on our generic itself:
 
 ```
-type TextProps<T extends React.ElementType = 'span'> = {
+type TextProps<T extends React.ElementType> = {
     as?: T,
     children: React.ReactNode,
 } & React.ComponentPropsWithoutRef<T>;
@@ -274,6 +274,6 @@ type TextProps<T> = {
 } & React.ComponentPropsWithoutRef<T>;
 ```
 
-We will need further changes to this yet as we improve the type safety of our Component. It is important to note that wiht how this is working so far we do have the capability to render custom Components via the ```as``` prop. This is because our generic currently extends ElementType which itself also extends another type definition ComponentType.
+We will need further changes to this yet as we improve the type safety of our Component. It is important to note that wiht how this is working so far we do have the capability to render custom Components via the ```as``` prop. This is because our generic currently extends ElementType which itself also extends another type definition ComponentType. This ComponentType also extends a union of ComponentClass and FunctionComponent (meaning it can handle both class and functional components).
 
 [<< prev](./1_introduction.md)
