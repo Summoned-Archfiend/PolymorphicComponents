@@ -400,4 +400,8 @@ export default Text;
 
 However, in a production level application it would be better to use the classNames library which enable us to pass multiple classes to our components. This introduces a bit more complexity in that you will need a stylesheet imported, and then to transform the class based on the prop, this class would then be applied within ```classNames```. A full example of passing custom attributes can be viewed [here](https://github.com/LukeMcCann/FirstPolymorphicComponent/tree/custom-attributes).
 
+___
+
+[useful tutorial](https://www.youtube.com/watch?v=uZ8GZm5KEXY)
+
 [<< prev](./1_introduction.md)
